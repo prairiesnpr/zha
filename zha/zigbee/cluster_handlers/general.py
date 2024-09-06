@@ -232,6 +232,14 @@ class BinaryInputClusterHandler(ClusterHandler):
             config=REPORT_CONFIG_DEFAULT,
         ),
     )
+    ZCL_INIT_ATTRS = {
+        BinaryInput.AttributeDefs.description.name: True,
+    }
+
+    @property
+    def description(self) -> str | None:
+        """Return cached value of description."""
+        return self.cluster.get(BinaryInput.AttributeDefs.description.name)
 
 
 @registries.CLUSTER_HANDLER_REGISTRY.register(BinaryOutput.cluster_id)
@@ -390,6 +398,15 @@ class MultistateInputClusterHandler(ClusterHandler):
             config=REPORT_CONFIG_DEFAULT,
         ),
     )
+
+    ZCL_INIT_ATTRS = {
+        MultistateInput.AttributeDefs.description.name: True,
+    }
+
+    @property
+    def description(self) -> str | None:
+        """Return cached value of description."""
+        return self.cluster.get(MultistateInput.AttributeDefs.description.name)
 
 
 @registries.CLUSTER_HANDLER_REGISTRY.register(MultistateOutput.cluster_id)
