@@ -175,8 +175,9 @@ class Opening(BinarySensor):
 @MULTI_MATCH(cluster_handler_names=CLUSTER_HANDLER_BINARY_INPUT)
 class BinaryInput(BinarySensor):
     """ZHA BinarySensor."""
-    _attr_translation_key = "binary_input"
+
     _attribute_name = "present_value"
+    _attr_translation_key: str = "binary_input"
 
 
 @STRICT_MATCH(

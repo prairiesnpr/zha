@@ -496,9 +496,7 @@ class EnumSensor(Sensor):
         self._attribute_name = entity_metadata.attribute_name
         self._enum = entity_metadata.enum
 
-        PlatformEntity._init_from_quirks_metadata(
-            self, entity_metadata
-        )  # pylint: disable=protected-access
+        PlatformEntity._init_from_quirks_metadata(self, entity_metadata)  # pylint: disable=protected-access
 
     def formatter(self, value: int) -> str | None:
         """Use name of enum."""
