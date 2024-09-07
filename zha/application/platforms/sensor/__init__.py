@@ -29,6 +29,7 @@ from zha.application.platforms import (
 )
 from zha.application.platforms.climate.const import HVACAction
 from zha.application.platforms.helpers import validate_device_class
+from zha.application.platforms.number.const import UNITS
 from zha.application.platforms.sensor.const import SensorDeviceClass, SensorStateClass
 from zha.application.registries import PLATFORM_ENTITIES
 from zha.decorators import periodic
@@ -65,6 +66,7 @@ from zha.zigbee.cluster_handlers.const import (
     CLUSTER_HANDLER_HUMIDITY,
     CLUSTER_HANDLER_ILLUMINANCE,
     CLUSTER_HANDLER_LEAF_WETNESS,
+    CLUSTER_HANDLER_MULTISTATE_INPUT,
     CLUSTER_HANDLER_POWER_CONFIGURATION,
     CLUSTER_HANDLER_PRESSURE,
     CLUSTER_HANDLER_SMARTENERGY_METERING,
@@ -494,12 +496,75 @@ class EnumSensor(Sensor):
         self._attribute_name = entity_metadata.attribute_name
         self._enum = entity_metadata.enum
 
-        PlatformEntity._init_from_quirks_metadata(self, entity_metadata)  # pylint: disable=protected-access
+        PlatformEntity._init_from_quirks_metadata(
+            self, entity_metadata
+        )  # pylint: disable=protected-access
 
     def formatter(self, value: int) -> str | None:
         """Use name of enum."""
         assert self._enum is not None
         return self._enum(value).name
+
+
+@CONFIG_DIAGNOSTIC_MATCH(cluster_handler_names=CLUSTER_HANDLER_MULTISTATE_INPUT)
+class MultiStateInputSensor(EnumSensor):
+    """Sensor that displays enumerated values."""
+
+    _attribute_name = "present_value"
+    _unique_id_suffix = "present_value"
+    _attr_entity_registry_enabled_default = False
+    _attr_traslation_key = "multistate_input"
+    _enum = enum.Enum("Empty", names=())
+
+    def __init__(
+        self,
+        unique_id: str,
+        cluster_handlers: list[ClusterHandler],
+        endpoint: Endpoint,
+        device: Device,
+        **kwargs: Any,
+    ) -> None:
+        """Init this sensor."""
+        super().__init__(unique_id, cluster_handlers, endpoint, device, **kwargs)
+        if self._cluster_handler.cluster.get("state_text"):
+            self._enum = enum.Enum(
+                "state_text", self._cluster_handler.cluster.get("state_text")
+            )
+        elif self._cluster_handler.cluster.get("number_of_states"):
+            self._enum = enum.Enum(
+                "state_text",
+                [
+                    (f"state_{i}", i)
+                    for i in range(
+                        self._cluster_handler.cluster.get("number_of_states")
+                    )
+                ],
+            )
+
+
+
+@CONFIG_DIAGNOSTIC_MATCH(cluster_handler_names=CLUSTER_HANDLER_ANALOG_INPUT)
+class AnalogInputSensor(Sensor):
+    """Sensor that displays analog input values."""
+
+    _attribute_name = "present_value"
+    _attr_translation_key = "analog_input"
+    _unique_id_suffix = "present_value"
+    _attr_entity_registry_enabled_default = False
+    _attr_has_entity_name = True
+
+    def __init__(
+        self,
+        unique_id: str,
+        cluster_handlers: list[ClusterHandler],
+        endpoint: Endpoint,
+        device: Device,
+        **kwargs: Any,
+    ) -> None:
+        """Init this sensor."""
+        super().__init__(unique_id, cluster_handlers, endpoint, device, **kwargs)
+        engineering_units = self._cluster_handler.engineering_units
+        self._attr_native_unit_of_measurement = UNITS.get(engineering_units)
 
 
 @MULTI_MATCH(

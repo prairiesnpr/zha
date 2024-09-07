@@ -213,7 +213,9 @@ class ClusterHandler(LogMixin, EventBase):
         self.data_cache: dict[str, Any] = {}
 
     @classmethod
-    def matches(cls, cluster: zigpy.zcl.Cluster, endpoint: Endpoint) -> bool:  # pylint: disable=unused-argument
+    def matches(
+        cls, cluster: zigpy.zcl.Cluster, endpoint: Endpoint
+    ) -> bool:  # pylint: disable=unused-argument
         """Filter the cluster match for specific devices."""
         return True
 
@@ -259,6 +261,8 @@ class ClusterHandler(LogMixin, EventBase):
     @functools.cached_property
     def name(self) -> str:
         """Return friendly name."""
+        #if hasattr(self, "description") and self.description is not None:
+         #   return self.description
         return self.cluster.ep_attribute or self._generic_id
 
     @property
@@ -404,9 +408,9 @@ class ClusterHandler(LogMixin, EventBase):
             return
 
         for record in res:
-            event_data[self.cluster.find_attribute(record.attrid).name]["status"] = (
-                record.status.name
-            )
+            event_data[self.cluster.find_attribute(record.attrid).name][
+                "status"
+            ] = record.status.name
         failed = [
             self.cluster.find_attribute(record.attrid).name
             for record in res
