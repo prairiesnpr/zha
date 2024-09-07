@@ -259,8 +259,6 @@ class ClusterHandler(LogMixin, EventBase):
     @functools.cached_property
     def name(self) -> str:
         """Return friendly name."""
-        #if hasattr(self, "description") and self.description is not None:
-         #   return self.description
         return self.cluster.ep_attribute or self._generic_id
 
     @property
